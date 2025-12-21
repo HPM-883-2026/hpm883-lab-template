@@ -1,0 +1,32 @@
+# R specific
+.Rhistory
+.RData
+.Rproj.user
+.Ruserdata
+*.Rproj.user/
+
+# Quarto output (submit the .qmd, not rendered output)
+*.html
+*.pdf
+*.docx
+_freeze/
+.quarto/
+
+# renv (lockfile IS tracked, library is NOT)
+renv/library/
+renv/staging/
+renv/python/
+renv/sandbox/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+*~

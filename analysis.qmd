@@ -1,0 +1,99 @@
+---
+title: "Lab X: [Title]"
+author: "[Your Name]"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+    code-summary: "Show code"
+    theme: cosmo
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Overview
+
+<!--
+This is a template for HPM 883 lab assignments.
+Replace the bracketed text with your actual content.
+Delete these HTML comments before submitting.
+-->
+
+**Objective:** [Describe what this lab is about]
+
+**Due Date:** [Date]
+
+---
+
+## Setup
+
+```{r}
+#| label: setup
+
+# Load required packages
+library(tidyverse)
+library(estimatr)
+library(gt)
+
+# Set seed for reproducibility
+set.seed(883)
+```
+
+---
+
+## Part 1: [Section Title]
+
+### Background
+
+[Describe the context and what you're trying to do]
+
+### Your Task
+
+<!-- Instructions for students -->
+
+```{r}
+#| label: part1
+
+# Your code here
+
+```
+
+### Interpretation
+
+<!-- Write your interpretation of the results -->
+
+---
+## Part 2: [Section Title]
+
+### Your Task
+
+```{r}
+#| label: part2
+
+# Your code here
+
+```
+
+### Interpretation
+
+<!-- Write your interpretation of the results -->
+
+---
+
+## Summary
+
+<!-- Summarize what you learned from this lab -->
+
+---
+
+## Session Info
+
+```{r}
+#| label: session-info
+
+sessionInfo()
+```
