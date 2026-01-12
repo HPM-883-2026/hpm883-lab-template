@@ -1,6 +1,6 @@
 ---
-title: "Lab X: [Title]"
-author: "[Your Name]"
+title: "Lab 0: Reproducible Research Workflow"
+author: "[Your Name Here]"
 date: today
 format:
   html:
@@ -17,76 +17,518 @@ execute:
 
 ## Overview
 
-<!--
-This is a template for HPM 883 lab assignments.
-Replace the bracketed text with your actual content.
-Delete these HTML comments before submitting.
--->
+**Course:** HPM 883 - Advanced Quantitative Methods
+**Session:** 0.2 (January 12, 2026)
+**Duration:** 75 minutes
+**Grading:** Not graded; commit and push for personal reference
 
-**Objective:** [Describe what this lab is about]
+### Learning Objectives
 
-**Due Date:** [Date]
+By the end of this lab, you will be able to:
+
+1. Navigate and use GitHub Codespaces with RStudio Server
+2. Understand project organization principles for reproducible research
+3. Use Git for version control (clone, stage, commit, push)
+4. Load and explore data using R and tidyverse
+5. Perform basic regression analysis with robust standard errors
+6. Render Quarto documents and submit via GitHub
 
 ---
 
-## Setup
+## Part 0: Getting Started
+
+Welcome to your first lab in HPM 883! We're using **GitHub Codespaces** — a browser-based development environment that gives you a full RStudio Server with zero local setup required.
+
+### What Just Happened?
+
+When you accepted this assignment through GitHub Classroom:
+
+1. GitHub created a **personal copy** of this repository for you
+2. You clicked "Open in Codespace" which launched a cloud-based computer
+3. That computer has R, RStudio, and all required packages pre-installed
+4. You're now looking at RStudio Server running in your browser!
+
+### Tour of RStudio
+
+Take a moment to identify these four key panes:
+
+| Pane | Location | Purpose |
+|------|----------|---------|
+| **Source** | Top-left | Edit files (you're reading this here!) |
+| **Console** | Bottom-left | Run R commands interactively |
+| **Environment** | Top-right | View loaded data and objects |
+| **Files/Git** | Bottom-right | Navigate files, manage version control |
+
+### Verify Your Setup
+
+Run this code chunk to make sure everything is working:
 
 ```{r}
-#| label: setup
+#| label: verify-setup
 
-# Load required packages
+# Check R version (should be 4.3+)
+R.version$version.string
+
+# Check working directory
+getwd()
+
+# List files in the data folder
+list.files("data/")
+```
+
+::: {.callout-note}
+## Checkpoint
+
+You should see:
+
+- R version 4.3 or higher
+- A working directory path containing your repository name
+- `lab0_rct_data.csv` listed in the data folder
+
+If any of these are missing, raise your hand or post in the chat!
+:::
+
+---
+
+## Part 1: Project Organization
+
+Good project organization is the foundation of reproducible research. It helps you:
+
+- **Find things** when you return months later
+- **Share work** with collaborators (including your future self)
+- **Avoid errors** from misplaced files or broken paths
+
+### Standard Folder Structure
+
+Look at the Files pane (bottom-right). This project follows a standard structure:
+
+```
+lab-0-yourname/
+├── README.md           # Project description
+├── analysis.qmd        # This file (code + narrative)
+├── renv.lock           # Package versions (reproducibility!)
+├── data/
+│   └── lab0_rct_data.csv   # Our dataset
+└── .devcontainer/      # Codespaces configuration
+```
+
+### Key Principles
+
+**1. Separate code from data from output**
+
+- `data/` — Keep raw data here (never modify originals!)
+- `code/` or `R/` — R scripts and functions
+- `output/` — Generated figures, tables, results
+
+**2. Use relative paths, not absolute paths**
+
+```{r}
+#| label: paths-demo
+#| eval: false
+
+# BAD: This only works on YOUR computer
+read_csv("/Users/sean/Documents/project/data/myfile.csv")
+
+# GOOD: This works on ANY computer
+read_csv("data/myfile.csv")
+```
+
+**3. Number your scripts to show execution order**
+
+- `01_data_import.R` — First, load the data
+- `02_data_cleaning.R` — Second, clean it
+- `03_analysis.R` — Third, analyze
+
+::: {.callout-tip}
+## Five Habits for Reproducible Code
+
+1. **Use relative paths** — `data/file.csv` not `/Users/me/project/data/file.csv`
+2. **Number your scripts** — `01_import.R`, `02_clean.R`, `03_analyze.R` shows execution order
+3. **Never modify raw data** — Keep originals in `data/raw/`, save processed versions separately
+4. **Commit often** — Small, meaningful commits with descriptive messages
+5. **Start fresh sessions** — Restart R frequently to ensure code works from scratch
+
+*Adapted from Gentzkow & Shapiro, "Code and Data for the Social Sciences"*
+
+For a deeper dive, see the [Reproducible Research Guide](https://hpm883.ssylvia.io/reproducible-research.html).
+:::
+
+### Try It: Explore the Project
+
+```{r}
+#| label: explore-project
+
+# What's our working directory?
+getwd()
+
+# What files are in the data folder?
+list.files("data/")
+
+# Does this relative path work?
+file.exists("data/lab0_rct_data.csv")
+```
+
+::: {.callout-note}
+## Checkpoint
+
+After running the code above:
+
+- `getwd()` returns a path ending with your repo name
+- `list.files("data/")` shows `lab0_rct_data.csv`
+- `file.exists()` returns `TRUE`
+:::
+
+---
+
+## Part 2: Version Control with Git
+
+Version control is like having an unlimited "undo" button combined with automatic backups. Think of it as:
+
+> "Imagine if Dropbox and 'Track Changes' in Word had a baby"
+
+### Git vs. GitHub
+
+| Tool | What It Is | Analogy |
+|------|------------|---------|
+| **Git** | Software that tracks changes on your computer | The "Track Changes" feature |
+| **GitHub** | Website that hosts your repositories online | Dropbox/Google Drive for code |
+
+### The Core Workflow
+
+```
+Clone → Edit → Stage → Commit → Push
+```
+
+| Step | What It Does | When |
+|------|--------------|------|
+| **Clone** | Copy repo from GitHub to your machine | Once, at the start |
+| **Edit** | Make changes to files | Your normal work |
+| **Stage** | Select which changes to save | Before committing |
+| **Commit** | Save a snapshot with a message | After meaningful changes |
+| **Push** | Upload to GitHub | When you're ready to back up |
+
+### The Git Pane in RStudio
+
+Look at the **Git** tab in the bottom-right pane. You'll see:
+
+| Icon | Meaning |
+|------|---------|
+| **M** | Modified — you changed this file |
+| **A** | Added — new file, staged for commit |
+| **?** | Untracked — Git doesn't know about this file yet |
+
+### Practice: Your First Commit
+
+Let's make a change and push it to GitHub!
+
+::: {.callout-warning}
+## Your Turn: First Commit
+
+**Step 1:** At the top of this file, replace `[Your Name Here]` with your actual name in the `author:` field.
+
+**Step 2:** Save the file (`Cmd+S` or `Ctrl+S`)
+
+**Step 3:** Look at the Git pane — you should see `analysis.qmd` with an "M"
+
+**Step 4:** Check the box next to `analysis.qmd` to **stage** it
+
+**Step 5:** Click the **Commit** button
+
+**Step 6:** Write this message: `Add my name to author field`
+
+**Step 7:** Click **Commit** in the popup
+
+**Step 8:** Click **Push** (the green up arrow)
+
+**Step 9:** Go to GitHub, refresh your repo page — you should see your commit!
+:::
+
+::: {.callout-note}
+## Checkpoint
+
+After pushing:
+
+1. Go to your repo on GitHub (the link is in the README)
+2. You should see your commit message "Add my name to author field"
+3. Click on the commit to see exactly what changed
+
+Congratulations — you just did version control!
+:::
+
+---
+
+## Part 3: R Environment & Packages
+
+### What is renv?
+
+Your analysis might depend on dozens of R packages. If those packages update, your code might break!
+
+**renv** solves this by:
+
+1. Recording the exact versions of all packages you use
+2. Storing this in `renv.lock` (look for it in the Files pane)
+3. Allowing anyone to recreate your exact environment
+
+### Key Commands
+
+| Command | What It Does |
+|---------|--------------|
+| `renv::restore()` | Install packages from the lockfile |
+| `renv::snapshot()` | Update the lockfile with current packages |
+| `renv::status()` | Check if lockfile matches what's installed |
+
+### Loading Packages
+
+Now let's load the packages we'll need for analysis:
+
+```{r}
+#| label: load-packages
+
+# Core data manipulation and visualization
 library(tidyverse)
+
+# Robust standard errors for regression
 library(estimatr)
+
+# Nice tables
 library(gt)
-
-# Set seed for reproducibility
-set.seed(883)
 ```
-
----
-
-## Part 1: [Section Title]
-
-### Background
-
-[Describe the context and what you're trying to do]
-
-### Your Task
-
-<!-- Instructions for students -->
 
 ```{r}
-#| label: part1
+#| label: verify-packages
 
-# Your code here
+# Check R version
+R.version$version.string
 
+# See what packages are loaded
+search()
 ```
 
-### Interpretation
+::: {.callout-note}
+## Checkpoint
 
-<!-- Write your interpretation of the results -->
+All three `library()` calls should complete **without error**.
+
+If you see "there is no package called X", run this in the Console:
+
+```r
+renv::restore()
+```
+
+Then try loading the packages again.
+:::
 
 ---
-## Part 2: [Section Title]
 
-### Your Task
+## Part 4: Basic Analysis Workflow
+
+Now let's do some actual data analysis! We'll follow the standard workflow:
+
+**Load → Explore → Analyze → Visualize**
+
+### The Dataset
+
+We have data from a **simulated randomized controlled trial (RCT)** with 50 participants:
+
+| Variable | Description |
+|----------|-------------|
+| `id` | Participant identifier (1-50) |
+| `treatment` | Treatment assignment (0=Control, 1=Treatment) |
+| `age` | Age in years |
+| `education_years` | Years of education |
+| `baseline_score` | Pre-intervention score (0-100) |
+| `outcome_score` | Post-intervention score (0-100) |
+
+### Step 1: Load Data
 
 ```{r}
-#| label: part2
+#| label: load-data
 
-# Your code here
+# Load the RCT data using a relative path
+df <- read_csv("data/lab0_rct_data.csv")
 
+# What did we get?
+df
 ```
 
-### Interpretation
+### Step 2: Explore Data
 
-<!-- Write your interpretation of the results -->
+Before any analysis, always look at your data!
+
+```{r}
+#| label: explore-data
+
+# Structure and variable types
+glimpse(df)
+
+# Summary statistics
+summary(df)
+
+# How many in each treatment group?
+count(df, treatment)
+```
+
+### Step 3: Analyze — Treatment Effect
+
+Our main question: **Did the treatment improve outcomes?**
+
+```{r}
+#| label: analysis-unadjusted
+
+# Simple difference in means (unadjusted)
+model1 <- lm_robust(outcome_score ~ treatment, data = df)
+summary(model1)
+```
+
+The `treatment` coefficient tells us the **average treatment effect** — how much higher outcome scores are in the treatment group compared to control.
+
+```{r}
+#| label: analysis-adjusted
+
+# With covariate adjustment (more precise)
+model2 <- lm_robust(outcome_score ~ treatment + baseline_score, data = df)
+summary(model2)
+```
+
+::: {.callout-tip}
+## Why Covariate Adjustment?
+
+Adding `baseline_score` as a covariate:
+
+1. **Reduces variance** — We explain some outcome variation with baseline
+2. **Increases precision** — Smaller standard errors
+3. **Same unbiased estimate** — Randomization ensures treatment is uncorrelated with baseline
+
+Compare the standard errors between `model1` and `model2`!
+:::
+
+### Step 4: Visualize
+
+```{r}
+#| label: visualization
+
+# Boxplot: Outcome by treatment group
+ggplot(df, aes(x = factor(treatment), y = outcome_score)) +
+  geom_boxplot(fill = c("#E69F00", "#56B4E9")) +
+  labs(
+    x = "Treatment Group",
+    y = "Outcome Score",
+    title = "Treatment Effect on Outcome Score"
+  ) +
+  scale_x_discrete(labels = c("Control", "Treatment")) +
+  theme_minimal()
+```
+
+::: {.callout-note}
+## Checkpoint
+
+Your results should show:
+
+- Treatment effect of approximately **12-15 points** (positive)
+- Adjusted model has a **smaller standard error** than unadjusted
+- Clear visual separation between treatment and control groups
+:::
+
+### Practice: Modify the Visualization
+
+::: {.callout-warning}
+## Your Turn: Improve the Plot
+
+Modify the plot below to:
+
+1. Change `geom_boxplot()` to `geom_violin()` for a different view
+2. Add individual points using `geom_jitter()` after the violin
+3. Adjust jitter settings: `width = 0.1, alpha = 0.5`
+
+```{r}
+#| label: practice-plot
+
+# YOUR CODE: Modify this plot
+ggplot(df, aes(x = factor(treatment), y = outcome_score)) +
+  geom_boxplot(fill = c("#E69F00", "#56B4E9")) +  # Change this line
+  # Add geom_jitter() here
+  labs(
+    x = "Treatment Group",
+    y = "Outcome Score",
+    title = "Treatment Effect on Outcome Score"
+  ) +
+  scale_x_discrete(labels = c("Control", "Treatment")) +
+  theme_minimal()
+```
+:::
 
 ---
 
-## Summary
+## Part 5: Render & Submit
 
-<!-- Summarize what you learned from this lab -->
+### Render Your Document
+
+**Rendering** converts this Quarto document into a polished HTML file:
+
+1. Click the **Render** button (or press `Cmd+Shift+K` / `Ctrl+Shift+K`)
+2. Wait for the document to compile (you'll see progress in the Background Jobs tab)
+3. A preview will open — scroll through to check your work!
+
+### Final Commit and Push
+
+Now let's save your completed work to GitHub:
+
+::: {.callout-warning}
+## Your Turn: Final Submission
+
+**Step 1:** In the Git pane, check the boxes next to:
+- `analysis.qmd` (your code)
+- `analysis.html` (rendered output)
+
+**Step 2:** Click **Commit**
+
+**Step 3:** Write message: `Complete Lab 0`
+
+**Step 4:** Click **Commit**, then **Push**
+
+**Step 5:** Go to GitHub and verify your files are there!
+:::
+
+::: {.callout-note}
+## Checkpoint: You're Done!
+
+Your GitHub repository should now show:
+
+- [ ] `analysis.html` file exists
+- [ ] At least 2 commits in your history
+- [ ] Your name appears in the author field
+
+**That's it!** You've completed Lab 0.
+:::
+
+---
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| "Package not found" | Run `renv::restore()` in the Console |
+| Git push fails | Make sure you committed first |
+| Render fails | Check for R errors in Console; fix and try again |
+| Codespace is slow | Normal first time; future loads are faster |
+| Can't find Git pane | Go to View → Show Git |
+
+---
+
+## Key Takeaways
+
+1. **Reproducibility starts with organization** — Use consistent folder structure, relative paths, numbered files
+2. **Git is your safety net** — Commit early, commit often, with meaningful messages
+3. **renv ensures package consistency** — Lock your dependencies for reproducibility
+4. **Quarto combines code + narrative** — One document, reproducible results
+
+---
+
+## What's Next?
+
+- **Due:** January 19, 2026 (end of Week 1)
+- **Submission:** Just commit and push — we see your work on GitHub
+- **Solutions:** Available after class session ends
+- **Questions?** Post on Canvas Discussions or come to office hours
 
 ---
 

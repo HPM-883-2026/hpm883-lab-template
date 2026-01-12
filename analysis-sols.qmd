@@ -1,0 +1,320 @@
+---
+title: "Lab 0: Reproducible Research Workflow — SOLUTIONS"
+author: "Sean Sylvia"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+    code-summary: "Show code"
+    theme: cosmo
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+::: {.callout-important}
+## Instructor Solutions
+
+This document contains the complete solutions for Lab 0.
+Do not distribute to students until after the class session ends.
+:::
+
+## Overview
+
+**Course:** HPM 883 - Advanced Quantitative Methods
+**Session:** 0.2 (January 12, 2026)
+**Duration:** 75 minutes
+**Grading:** Not graded; commit and push for personal reference
+
+### Learning Objectives
+
+By the end of this lab, students will be able to:
+
+1. Navigate and use GitHub Codespaces with RStudio Server
+2. Understand project organization principles for reproducible research
+3. Use Git for version control (clone, stage, commit, push)
+4. Load and explore data using R and tidyverse
+5. Perform basic regression analysis with robust standard errors
+6. Render Quarto documents and submit via GitHub
+
+---
+
+## Setup
+
+```{r}
+#| label: setup
+
+# Load required packages
+library(tidyverse)
+library(estimatr)
+library(gt)
+
+# Set seed for reproducibility
+set.seed(883)
+```
+
+---
+
+## Part 0: Getting Started
+
+```{r}
+#| label: verify-setup
+
+# Check R version (should be 4.3+)
+R.version$version.string
+
+# Check working directory
+getwd()
+
+# List files in the data folder
+list.files("data/")
+```
+
+**Expected output:**
+- R version 4.3.x or 4.4.x
+- Working directory path contains repo name
+- `lab0_rct_data.csv` listed
+
+---
+
+## Part 1: Project Organization
+
+```{r}
+#| label: explore-project
+
+# What's our working directory?
+getwd()
+
+# What files are in the data folder?
+list.files("data/")
+
+# Does this relative path work?
+file.exists("data/lab0_rct_data.csv")
+```
+
+**Expected output:**
+- `TRUE` for file.exists()
+
+---
+
+## Part 3: R Environment & Packages
+
+```{r}
+#| label: load-packages
+
+# Core data manipulation and visualization
+library(tidyverse)
+
+# Robust standard errors for regression
+library(estimatr)
+
+# Nice tables
+library(gt)
+```
+
+```{r}
+#| label: verify-packages
+
+# Check R version
+R.version$version.string
+
+# See what packages are loaded
+search()
+```
+
+---
+
+## Part 4: Basic Analysis Workflow
+
+### Load Data
+
+```{r}
+#| label: load-data
+
+# Load the RCT data using a relative path
+df <- read_csv("data/lab0_rct_data.csv")
+
+# What did we get?
+df
+```
+
+### Explore Data
+
+```{r}
+#| label: explore-data
+
+# Structure and variable types
+glimpse(df)
+
+# Summary statistics
+summary(df)
+
+# How many in each treatment group?
+count(df, treatment)
+```
+
+**Expected:** 25 in each group (treatment = 0, treatment = 1)
+
+### Analysis: Treatment Effect
+
+```{r}
+#| label: analysis-unadjusted
+
+# Simple difference in means (unadjusted)
+model1 <- lm_robust(outcome_score ~ treatment, data = df)
+summary(model1)
+```
+
+```{r}
+#| label: analysis-adjusted
+
+# With covariate adjustment (more precise)
+model2 <- lm_robust(outcome_score ~ treatment + baseline_score, data = df)
+summary(model2)
+```
+
+**Key results to highlight:**
+
+1. **Treatment effect:** ~13-14 points (will vary slightly with different datasets)
+2. **Standard errors:** Model 2 (adjusted) should have smaller SE than Model 1
+3. **Interpretation:** Treatment group scores ~13 points higher on average
+
+### Visualization
+
+```{r}
+#| label: visualization
+
+# Boxplot: Outcome by treatment group
+ggplot(df, aes(x = factor(treatment), y = outcome_score)) +
+  geom_boxplot(fill = c("#E69F00", "#56B4E9")) +
+  labs(
+    x = "Treatment Group",
+    y = "Outcome Score",
+    title = "Treatment Effect on Outcome Score"
+  ) +
+  scale_x_discrete(labels = c("Control", "Treatment")) +
+  theme_minimal()
+```
+
+---
+
+## SOLUTION: Practice Exercise
+
+::: {.callout-tip}
+## Solution: Improved Visualization
+
+Students were asked to:
+1. Change `geom_boxplot()` to `geom_violin()`
+2. Add `geom_jitter()` with `width = 0.1, alpha = 0.5`
+:::
+
+```{r}
+#| label: practice-plot-solution
+
+# SOLUTION: Violin plot with jittered points
+ggplot(df, aes(x = factor(treatment), y = outcome_score)) +
+  geom_violin(fill = c("#E69F00", "#56B4E9"), alpha = 0.7) +
+  geom_jitter(width = 0.1, alpha = 0.5) +
+  labs(
+    x = "Treatment Group",
+    y = "Outcome Score",
+    title = "Treatment Effect on Outcome Score"
+  ) +
+  scale_x_discrete(labels = c("Control", "Treatment")) +
+  theme_minimal()
+```
+
+**Alternative acceptable solutions:**
+
+```{r}
+#| label: alternative-solution-1
+
+# Option 2: Violin + points with different aesthetics
+ggplot(df, aes(x = factor(treatment), y = outcome_score, fill = factor(treatment))) +
+  geom_violin(alpha = 0.6) +
+  geom_jitter(width = 0.1, alpha = 0.6, size = 2) +
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(
+    x = "Treatment Group",
+    y = "Outcome Score",
+    title = "Treatment Effect on Outcome Score"
+  ) +
+  scale_x_discrete(labels = c("Control", "Treatment")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+#| label: alternative-solution-2
+
+# Option 3: Half-violin (raincloud) style
+ggplot(df, aes(x = factor(treatment), y = outcome_score, fill = factor(treatment))) +
+  geom_violin(alpha = 0.5, trim = FALSE) +
+  geom_boxplot(width = 0.1, outlier.shape = NA) +
+  geom_jitter(width = 0.05, alpha = 0.5) +
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(
+    x = "Treatment Group",
+    y = "Outcome Score",
+    title = "Treatment Effect on Outcome Score"
+  ) +
+  scale_x_discrete(labels = c("Control", "Treatment")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+---
+
+## Instructor Notes
+
+### Timing Guide
+
+| Part | Planned | Notes |
+|------|---------|-------|
+| Part 0: Getting Started | 10 min | Allow buffer for Codespace boot (4-6 min first time) |
+| Part 1: Project Organization | 15 min | Can speed through if running long |
+| Part 2: Version Control | 20 min | Most important section — ensure all commit successfully |
+| Part 3: R Environment | 10 min | Quick if no package issues |
+| Part 4: Analysis | 15 min | Core content — don't skip |
+| Part 5: Render & Submit | 5 min | Can extend if time permits |
+
+### Common Issues
+
+1. **Codespace slow to boot:** Normal first time (4-6 min). Subsequent loads are faster.
+
+2. **Package not found:** Run `renv::restore()` in Console
+
+3. **Git push fails:**
+   - Make sure student committed first
+   - Check they have proper GitHub authentication
+   - May need to set git config: `git config --global user.email "email@unc.edu"`
+
+4. **Render fails:**
+   - Check Console for R errors
+   - Most common: syntax error in code chunk
+   - Have students run chunks individually to find issue
+
+5. **Students can't find Git pane:** View → Show Git
+
+### Key Teaching Points
+
+1. **Relative paths:** Emphasize this is THE most common reproducibility failure. Demo the bad path failing.
+
+2. **Commit messages:** Model good messages. "Add analysis" > "stuff"
+
+3. **Covariate adjustment:** Great opportunity to preview why we care about precision (connects to power analysis later)
+
+4. **Treatment effect:** ~13-14 points is the "true" effect in this simulated data. Good for building intuition.
+
+---
+
+## Session Info
+
+```{r}
+#| label: session-info
+
+sessionInfo()
+```
